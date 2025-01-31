@@ -57,6 +57,10 @@ def chat(model: str, messages: list, tools: list=[],
     return _patch_response(response, tools)
 
 
+def generate(*args, **kwargs):
+    return ollama.generate(*args, **kwargs)
+
+
 class Client(ollama.Client):
   def chat(self, *args, **kwargs):
     return chat(chat_func=super().chat, *args, **kwargs)
