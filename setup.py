@@ -9,7 +9,7 @@ with open('LICENSE') as f:
 
 setup(
     name='ollama-tools',
-    version='0.0.3',
+    version='0.0.4',
     description='A workaround for models on Ollama that does not support tool calling',
     long_description=readme,
     long_description_content_type="text/markdown",
