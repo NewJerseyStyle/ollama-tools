@@ -1,6 +1,8 @@
 # ollama-tools
 
-A workaround for models on Ollama that does not support tool calling. This module provides a temporary solution to use those models with tools.
+A workaround for models on Ollama that does not support tool calling. This package provides a temporary solution to use those models with tools.
+
+Also works as Ollama server wrapper with `ollama-tools --host 0.0.0.0 --port 22434` to proxy the Ollama server with extra support for tool calling with models such as DeepSeek-R1.
 
 ## Installation
 Install Ollama and get a model
@@ -9,20 +11,21 @@ curl -fsSL https://ollama.com/install.sh | sh
 ollama serve &
 ollama pull deepseek-r1:1.5b
 ```
-> Above Bash commands shows installation on Linux, installing Ollama on other operating systems refer to https://ollama.com/download
+> ℹ️ Above Bash commands shows installation on Linux, installing Ollama on other operating systems refer to https://ollama.com/download
 
-Install the module
+Install the package for Python binding
 ```bash
 pip install ollama-tools
 ```
 
-Import the module
+## Example Usage
+### Develop in Python
+1. Import the package
 ```python
 import ollama_tools
 ```
 
-## Example Usage
-Simple chat without tools
+2. Simple chat without tools
 ```python
 response = ollama_tools.chat(
     model='deepseek-r1:1.5b',
@@ -35,7 +38,7 @@ Message(role='assistant', content="I don't have access to the current weather da
 '''
 ```
 
-Chat with tools
+3. Chat with tools
 ```python
 tools=[
     {
@@ -75,7 +78,7 @@ ChatResponse(model='deepseek-r1:1.5b', created_at='2025-01-31T06:09:22.095306834
 ```
 
 ## AsyncClient
-The behaviour of `ollama_tools.AsyncClient` is different from `ollama.AsyncClient` when `stream=True` is enabled, the for-loop `async for part in AsyncClient()` does not need `await` before `AsyncClient`
+> ⚠️ The behaviour of `ollama_tools.AsyncClient` is different from `ollama.AsyncClient` when `stream=True` is enabled, the for-loop `async for part in AsyncClient()` does not need `await` before `AsyncClient`
 ```python
 import asyncio
 from ollama_tools import AsyncClient
@@ -87,4 +90,48 @@ async def chat():
     print(part['message']['content'], end='', flush=True)
 
 asyncio.run(chat())
+```
+
+## Ollama Wrapper (Server)
+Install the package with Ollama wrapper
+```bash
+pip install ollama-tools[full]
+ollama-tools --host 0.0.0.0 --port 22434
+```
+
+Now we can use this in `llama-index` or `langchain`
+```python
+### llama_index ==================
+from llama_index.llms.ollama import Ollama
+
+llm = Ollama(
+    model="deepseek-r1",
+    base_url="http://localhost:22434", # as we started the server with `--port 22434`
+    request_timeout=60.0
+)
+
+response = llm.complete("What is the capital of France?")
+print(response)
+
+
+### langchain_ollama ==================
+from langchain_ollama import ChatOllama
+
+llm = ChatOllama(
+    model="deepseek-r1",
+    temperature=0,
+    base_url="http://localhost:22434"
+)
+
+from langchain_core.messages import AIMessage
+
+messages = [
+    (
+        "system",
+        "You are a helpful assistant that translates English to French. Translate the user sentence.",
+    ),
+    ("human", "I love programming."),
+]
+ai_msg = llm.invoke(messages)
+print(ai_msg)
 ```
