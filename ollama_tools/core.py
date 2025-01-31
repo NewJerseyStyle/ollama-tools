@@ -65,6 +65,10 @@ def embed(*args, **kwargs):
     return ollama.embed(*args, **kwargs)
 
 
+def list(*args, **kwargs):
+    return ollama.list(*args, **kwargs)
+
+
 class Client(ollama.Client):
   def chat(self, *args, **kwargs):
     return chat(chat_func=super().chat, *args, **kwargs)
