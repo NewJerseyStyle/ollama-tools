@@ -12,6 +12,7 @@ setup(
     version='0.0.3',
     description='A workaround for models on Ollama that does not support tool calling',
     long_description=readme,
+    long_description_content_type="text/markdown",
     author='Yuan XU',
     author_email='dev.source@outlook.com',
     url='https://github.com/NewJerseyStyle',
