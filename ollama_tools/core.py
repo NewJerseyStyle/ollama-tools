@@ -27,6 +27,8 @@ def chat(model: str, messages: list, tools: list=[], **kwargs):
     **kwargs
   )
   message = Message.model_validate_json(response.message.content)
+  message.role = 'assistant'
   if len(tools) == 0:
     message.tool_calls = []
-  return message
+  response.message = message
+  return response
