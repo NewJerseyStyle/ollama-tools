@@ -9,7 +9,7 @@ with open('LICENSE') as f:
 
 setup(
     name='ollama-tools',
-    version='0.1.0',
+    version='0.2.0',
     description='A workaround for models on Ollama that does not support tool calling',
     long_description=readme,
     long_description_content_type="text/markdown",
@@ -18,6 +18,14 @@ setup(
     url='https://github.com/NewJerseyStyle',
     license=license,
     packages=find_packages(exclude=('tests', 'docs')),
-    install_requires=['ollama']
+    install_requires=['ollama'],
+    entry_points={
+        'console_scripts': [
+            'ollama-tools=ollama_tools.server:main',
+        ],
+    },
+    extras_require={
+        'full': ['fastapi', 'uvicorn'],
+    },
 )
 
