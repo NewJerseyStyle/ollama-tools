@@ -16,5 +16,7 @@ setup(
     author_email='dev.source@outlook.com',
     url='https://github.com/NewJerseyStyle',
     license=license,
-    packages=find_packages(exclude=('tests', 'docs'))
+    packages=find_packages(exclude=('tests', 'docs')),
+    install_requires=['ollama']
 )
+
