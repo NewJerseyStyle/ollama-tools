@@ -9,10 +9,6 @@
 name: Upload Python Package
 
 on:
-  workflow_dispatch:
-    inputs:
-        name:
-          default: 'World'
   release:
     types: [published]
 
