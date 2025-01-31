@@ -1,1 +1,1 @@
-from .core import chat
+from .core import chat, Client, AsyncClient
