@@ -45,16 +45,19 @@ def chat(model: str, messages: list, tools: list=[],
     }] + messages
   elif str(tools) not in messages[0]['content']:
     messages[0]['content'] += f'\n\nTools available: {tools}'
+  if kwargs.get('format') is None or kwargs.get('format') == 'json':
+    kwargs['format'] = Message.model_json_schema()
   response = chat_func(
     messages=messages,
     model=model,
-    format=Message.model_json_schema(),
     **kwargs
   )
   if kwargs.get('stream', False):
     return _generator_chat(response, tools)
-  else:
+  elif kwargs['format'] == Message.model_json_schema():
     return _patch_response(response, tools)
+  else:
+    return response
 
 
 def generate(*args, **kwargs):
