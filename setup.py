@@ -19,7 +19,7 @@ setup(
     url='https://github.com/NewJerseyStyle',
     license=license,
     packages=find_packages(exclude=('tests', 'docs')),
-    install_requires=['ollama'],
+    install_requires=['pydantic', 'ollama'],
     entry_points={
         'console_scripts': [
             'ollama-tools=ollama_tools.server:main',
