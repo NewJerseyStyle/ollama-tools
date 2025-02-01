@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 from setuptools import setup, find_packages
-from ollama_tools import __version__
 
 with open('README.md') as f:
     readme = f.read()
@@ -10,7 +9,7 @@ with open('LICENSE') as f:
 
 setup(
     name='ollama-tools',
-    version=__version__,
+    version="v1.0.1",
     description='A workaround for models on Ollama that does not support tool calling',
     long_description=readme,
     long_description_content_type="text/markdown",
