@@ -4,6 +4,8 @@ A workaround for models on Ollama that does not support tool calling. This packa
 
 Also works as Ollama server wrapper with `ollama-tools --host 0.0.0.0 --port 22434` to proxy the Ollama server with extra support for tool calling with models such as DeepSeek-R1.
 
+> ⚠️I start to use LiteLLM by porting the same method to play around with DeepSeek-R1 on Groq so this repo is no long maintained.
+
 ## Installation
 Install Ollama and get a model
 ```bash
