@@ -20,41 +20,14 @@ app = FastAPI()
 
 def chat_response_to_dict(response):
     """Converts a ChatResponse object to a dict."""
-    return {
-        "model": response.model,
-        "created_at": datetime.fromisoformat(response.created_at).isoformat() if response.created_at else None,
-        "done": response.done,
-        "done_reason": response.done_reason,
-        "total_duration": response.total_duration,
-        "load_duration": response.load_duration,
-        "prompt_eval_count": response.prompt_eval_count,
-        "prompt_eval_duration": response.prompt_eval_duration,
-        "eval_count": response.eval_count,
-        "eval_duration": response.eval_duration,
-        "message": {
-            "role": response.message.role,
-            "content": response.message.content,
-            "images": getattr(response.message, "images", None),
-            "tool_calls": getattr(response.message, "tool_calls", None)
-        }
-    }
-
-
-def gen_response_to_dict(response):
-    return {
-        "model": response.model,
-        "created_at": datetime.fromisoformat(response.created_at).isoformat() if response.created_at else None,
-        "done": response.done,
-        "done_reason": response.done_reason,
-        "total_duration": response.total_duration,
-        "load_duration": response.load_duration,
-        "prompt_eval_count": response.prompt_eval_count,
-        "prompt_eval_duration": response.prompt_eval_duration,
-        "eval_count": response.eval_count,
-        "eval_duration": response.eval_duration,
-        "response": response.response,
-        "context": response.context
-    }
+    data = json.loads(response.json())
+    data['message'] = json.loads(response.message.json())
+    if response.message.get("images"):
+        data['message']["images"] = json.loads(response.message.images.json())
+    if response.message.get("tool_calls"):
+        data['message']["tool_calls"] = [json.loads(call.json())
+            for call in response.message.tool_calls]
+    return data
 
 
 def model_exists(model):
@@ -74,7 +47,8 @@ async def generate(request: Request):
         for image in data.get('images'):
             try:
                 image_data = base64.b64decode(image)
-                with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as temp_file:
+                with tempfile.NamedTemporaryFile(suffix=".png",
+                                                delete=False) as temp_file:
                     temp_file.write(image_data)
                     image_paths.append(temp_file.name)
             except Exception as e:
@@ -88,11 +62,11 @@ async def generate(request: Request):
         # Return streaming response
         def stream_response():
             for chunk in response:
-                yield json.dumps(gen_response_to_dict(chunk))
+                yield chunk.json()
         return StreamingResponse(content=stream_response())
     else:
         # Return single response
-        return gen_response_to_dict(response)
+        return response.json()
 
 
 @app.post("/api/chat")
@@ -102,6 +76,13 @@ async def chat(request: Request):
         return {"error": f"model '{data.get('model')}' not found"}
     response = ollama.chat(**data)
     if data.get('stream'):
+        if data.get('tools'):
+            content = ''
+            for chunk in response:
+                content += chunk.message.content
+            chunk.message.content = json.loads(content)['content']
+            data = chat_response_to_dict(chunk)
+            return data
         def stream_response():
             for chunk in response:
                 yield json.dumps(chat_response_to_dict(chunk))
@@ -115,20 +96,9 @@ async def show_model(request: Request):
     data = await request.json()
     for _model in ollama.list().models:
         if _model.model == data.get('model'):
-            return {
-                'model': model.model,
-                'modified_at': model.modified_at,
-                'digest': model.digest,
-                'size': model.size,
-                'details': {
-                    'parent_model': model.details.parent_model,
-                    'format': model.details.format,
-                    'family': model.details.family,
-                    'families': model.details.families,
-                    'parameter_size': model.details.parameter_size,
-                    'quantization_level': model.details.quantization_level
-                }
-            }
+            data = json.loads(_model.json())
+            data['details'] = json.loads(_model.details.json())
+            return data
     return {"error": f"model '{data.get('model')}' not found"}
     
 
@@ -136,21 +106,9 @@ async def show_model(request: Request):
 async def list_model():
     info = []
     for model in ollama.list().models:
-        info.append({
-            'model': model.model,
-            'modified_at': model.modified_at,
-            'digest': model.digest,
-            'size': model.size,
-            'details': {
-                'parent_model': model.details.parent_model,
-                'format': model.details.format,
-                'family': model.details.family,
-                'families': model.details.families,
-                'parameter_size': model.details.parameter_size,
-                'quantization_level': model.details.quantization_level
-            }
-            
-        })
+        data = json.loads(model.json())
+        data['details'] = json.loads(model.details.json())
+        info.append(data)
     return {'models': info}
 
 
@@ -162,19 +120,7 @@ async def generate_embedding(request: Request):
         return {"error": f"model '{data.get('model')}' not found"}
     if data.get('input'):
         response = ollama.embed(**data)
-        return {
-            "model": response.model,
-            "created_at": response.created_at,
-            "done": response.done,
-            "done_reason": response.done_reason,
-            "total_duration": response.total_duration,
-            "load_duration": response.load_duration,
-            "prompt_eval_count": response.prompt_eval_count,
-            "prompt_eval_duration": response.prompt_eval_duration,
-            "eval_count": response.eval_count,
-            "eval_duration": response.eval_duration,
-            "embeddings": response.embeddings,
-        }
+        return response.json()
     return {"embedding":[]}
 
 

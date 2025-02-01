@@ -1,11 +1,16 @@
+import json
 from pydantic import BaseModel
 from collections.abc import Callable
 
 import ollama
 
+class Function(BaseModel):
+  name: str
+  arguments: dict
+
+
 class ToolCall(BaseModel):
-    name: str
-    arguments: dict
+  function: Function
 
 
 class Message(BaseModel):
@@ -41,10 +46,10 @@ def chat(model: str, messages: list, tools: list=[],
   if messages[0]['role'] != 'system' and len(tools):
     messages = [{
       'role': 'system',
-      'content': f'Tools available: {tools}'
+      'content': f'Tools available: {json.dumps(tools, indent=2)}'
     }] + messages
   elif str(tools) not in messages[0]['content']:
-    messages[0]['content'] += f'\n\nTools available: {tools}'
+    messages[0]['content'] += f'\n\nTools available: {json.dumps(tools, indent=2)}'
   if kwargs.get('format') is None or kwargs.get('format') == 'json':
     kwargs['format'] = Message.model_json_schema()
   response = chat_func(
