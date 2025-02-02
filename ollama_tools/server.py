@@ -22,9 +22,10 @@ def chat_response_to_dict(response):
     """Converts a ChatResponse object to a dict."""
     data = json.loads(response.json())
     data['message'] = json.loads(response.message.json())
-    if response.message.get("images"):
+    if getattr(response.message, "images", False):
         data['message']["images"] = json.loads(response.message.images.json())
-    if response.message.get("tool_calls"):
+    if (getattr(response.message, "tool_calls", False) and
+        len(response.message.tool_calls)):
         data['message']["tool_calls"] = [json.loads(call.json())
             for call in response.message.tool_calls]
     return data
